@@ -12,8 +12,8 @@ class company extends Model
     protected $primaryKey='company_id';
     protected $fillable=['name','email','logo','website'];
     
-    public function getLogoAttribute()
+    public function getLogoAttribute($value)
     {
-        
+       return $value;
     }
 }
