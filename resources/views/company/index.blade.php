@@ -1,4 +1,9 @@
 @extends('layouts.app')
+@if(session()->has('message'))
+    <div class="alert alert-success">
+        {{ session()->get('message') }}
+    </div>
+@endif
 @section('content')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.1.1/css/fontawesome.min.css">
 <div class="container">
@@ -15,16 +20,19 @@
     </tr>
   </thead>
   <tbody>
+    <?php
+    $i=1;
+    ?>
   @foreach($companies as $comp)
-  <?php
-  $i=0; 
-  ?>
+ 
   <tr>
-      <td scope="row"></td>
+      <td scope="row">{{$i++}}</td>
     
       <td>{{$comp->name}}</td>
       <td>{{$comp->email}}</td>
-      <td>{{$comp->logo}}</td>
+      <td>
+        <img src="{{ url('/serve-logo/'.$comp->logo) }}" alt="" style="height:70px;width:70px;">
+      </td>
       <td>{{$comp->website}}</td>
       <td>
         <div>

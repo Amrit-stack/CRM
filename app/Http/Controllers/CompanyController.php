@@ -7,6 +7,7 @@ use App\Models\company;
 use GuzzleHttp\Promise\Create;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Storage;
 
 class CompanyController extends Controller
 {
@@ -17,7 +18,8 @@ class CompanyController extends Controller
 
     public function index()
     {
-        $companies=company::all();
+        $companies=company::with('employees')->get();
+       
         return view('company.index',['companies'=>$companies]);
     }
 
@@ -46,11 +48,14 @@ class CompanyController extends Controller
             return response()->json($response, 422);
         }
         $logo='noimg.svg';
+
        if($request->hasFile('logo'))
        {
             $image=$request->file('logo');
+        
             $logoimage=date('Ymdhis') . '.' . $image->getClientOriginalExtension();
             $destinationpath=storage_path('/app/public/');
+            // $image->resize(100,100);
             $image->move($destinationpath,$logoimage);
             $logo=$logoimage;
        }
@@ -58,20 +63,18 @@ class CompanyController extends Controller
         $input=array(
             'name'=>$request['name'],
             'email'=>$request['email'],
-            'logo'=>json_encode($logo),
+            'logo'=>$logo,
             'website'=>$request['website']);
 
         $result=company::create($input);
         if($result->exists())
         {
-            Session::flash('message', 'Company Data Added');
-            Session::flash('alert-class', 'alert-success');
-            return redirect()->route('companies.index');
+            
+            return redirect()->route('companies.index')->with('message','Company has been created successfully!');
         }
         else{
-            Session::flash('message', 'An Error occured in adding Company Data');
-            Session::flash('alert-class', 'alert-danger');
-            return redirect()->route('companies.index');
+           
+            return redirect()->route('companies.index')->with('error','Error!');
         }
 
         
@@ -130,21 +133,31 @@ class CompanyController extends Controller
         // dd($result);
         if($result)
         {
-            Session::flash('message', 'Company Data Updated');
-            Session::flash('alert-class', 'alert-success');
-            return redirect()->route('companies.index');
+            
+            return redirect()->route('companies.index')->with('message', 'Company Data Updated');;
         }
         else{
-            Session::flash('message', 'An Error occured in Updating Company Data');
-            Session::flash('alert-class', 'alert-danger');
-            return redirect()->route('companies.index');
+           
+            return redirect()->route('companies.index')->with('error','Error!');
         }
     }
     public function destroy($id)
     {
-    
-       $company=company::where('company_id','=',$id)->delete();
-       return redirect()->route('companies.index');
+      
+       $company=company::with('employees')->where('company_id','=',$id)->first();
+      
+       $company->delete();
+
+       return redirect()->route('companies.index')->with('message','Company has been deleted successfully!');
+    }
+    public function getlogo($image_name)
+    {
+
+        // if (!Storage::disk('app/public/')->exists($image_name)) {
+        //     return response()->file(storage_path('app/public/noimg.svg'));
+        // }
+
+        return response()->file(storage_path('app/public/' . DIRECTORY_SEPARATOR . ($image_name)));
     }
 }
 
